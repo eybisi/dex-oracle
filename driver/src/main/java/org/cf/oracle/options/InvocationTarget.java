@@ -10,16 +10,18 @@ public class InvocationTarget {
     private final String className;
     private final String methodName;
     private final String[] argumentStrings;
+    private  boolean instanceNeeded;
 
     private Object[] arguments;
     private Method method;
     private Throwable parseException = null;
 
-    InvocationTarget(String id, String className, String methodName, String[] argumentStrings) {
+    InvocationTarget(String id, String className, String methodName, String[] argumentStrings, boolean instanceNeeded) {
         this.id = id;
         this.className = className;
         this.methodName = methodName;
         this.argumentStrings = argumentStrings;
+        this.instanceNeeded = instanceNeeded;
     }
 
     public String toString() {
@@ -31,6 +33,7 @@ public class InvocationTarget {
         for (String argumentString : argumentStrings) {
             sb.append('\'').append(argumentString).append("',");
         }
+        sb.append(";instance:").append(instanceNeeded);
         if (argumentStrings.length > 0) {
             sb.setLength(sb.length() - 1);
         }
@@ -71,6 +74,9 @@ public class InvocationTarget {
     public String getClassName() {
         return className;
     }
+    public boolean getInstanceNeeded(){
+        return instanceNeeded;
+    }
 
     public String getMethodName() {
         return methodName;
@@ -78,6 +84,9 @@ public class InvocationTarget {
 
     public void setMethod(Method method) {
         this.method = method;
+    }
+    public void setInstanceNeeded(boolean instanceNeeded){
+        this.instanceNeeded = instanceNeeded;
     }
 
     public Throwable getParseException() {

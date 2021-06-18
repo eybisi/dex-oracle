@@ -12,7 +12,7 @@ import java.util.List;
 public class TargetParser {
 
     private static void parseTarget(Gson gson, String className, String methodName, String... args) {
-        InvocationTarget target = new InvocationTarget("none", className, methodName, args);
+        InvocationTarget target = new InvocationTarget("none", className, methodName, args,false);
         parseTargetExceptionally(gson, target);
     }
 
@@ -68,12 +68,13 @@ public class TargetParser {
             String className = targetItem.get("className").getAsString();
             String methodName = targetItem.get("methodName").getAsString();
             JsonArray argumentsJson = targetItem.get("arguments").getAsJsonArray();
+            String isInstanceNeeded = targetItem.get("instanceNeeded").getAsString();
             String[] arguments = new String[argumentsJson.size()];
             for (int i = 0; i < arguments.length; i++) {
                 arguments[i] = argumentsJson.get(i).getAsString();
             }
 
-            InvocationTarget target = new InvocationTarget(id, className, methodName, arguments);
+            InvocationTarget target = new InvocationTarget(id, className, methodName, arguments,isInstanceNeeded.equals("yep") ? true:false);
             parseTargetExceptionally(gson, target);
             targets.add(target);
         }
@@ -114,7 +115,7 @@ public class TargetParser {
             String className = args[0];
             String methodName = args[1];
             String[] argumentStrings = Arrays.copyOfRange(args, 2, args.length);
-            InvocationTarget target = new InvocationTarget("none", className, methodName, args);
+            InvocationTarget target = new InvocationTarget("none", className, methodName, args,false);
             parseTargetExceptionally(gson, target);
 
             List<InvocationTarget> targets = new LinkedList<InvocationTarget>();

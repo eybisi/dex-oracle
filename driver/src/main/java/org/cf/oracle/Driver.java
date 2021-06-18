@@ -28,6 +28,7 @@ public class Driver {
     private static final String DRIVER_DIR = "/data/local";
     private static final String OUTPUT_HEADER = "===ORACLE DRIVER OUTPUT===\n";
     private static final String EXCEPTION_LOG = "od-exception.txt";
+    private static final String DEBUG_LOG = "od-debug.txt";
     private static final String OUTPUT_FILE = "od-output.json";
     private static Gson GSON = buildGson();
 
@@ -46,7 +47,18 @@ public class Driver {
 
         return gsonBuilder.create();
     }
-
+    private static void debug_log(String msg) {
+        PrintWriter writer;
+        try {
+            writer = new PrintWriter(DEBUG_LOG, "UTF-8");
+        } catch (Exception e) {
+            return;
+        }
+        writer.println(msg);
+        StringWriter sw = new StringWriter();
+        writer.println(sw.toString());
+        writer.close();
+    }
     private static void die(String msg, Exception exception) {
         PrintWriter writer;
         try {
@@ -85,6 +97,34 @@ public class Driver {
 
         return output;
     }
+
+    private static String invokeMethodWithInstance(String klass,Method method, Object[] arguments) throws IllegalAccessException,
+    IllegalArgumentException, InvocationTargetException, InstantiationException , ClassNotFoundException{
+        method.setAccessible(true);
+        Class<?> klazz = Class.forName(klass);
+        Looper.prepare();
+        Object o = klazz.newInstance();
+        debug_log("Created instance");
+        Object returnObject = method.invoke(o,arguments);
+        Class<?> returnClass = method.getReturnType();
+        Looper.loop();
+        if (returnClass.getName().equals("Ljava.lang.Void;")) {
+            // I hear an ancient voice, whispering from the Void, and it chills my lightless heart...
+            return null;
+        }
+        String output = "";
+        try {
+            
+            output = GSON.toJson(returnClass.cast(returnObject));
+        } catch (Exception ex) {
+            output = GSON.toJson(returnObject);
+        }
+        String a = (String) arguments[0];
+        debug_log(klazz.toString() + " " + returnObject.toString() + " " +  klass+ " " + method.getName() + " " +output + " " +a );
+
+        return output;
+    }
+
 
     private static void showUsage() {
         System.out.println("Usage: export CLASSPATH=/data/local/od.zip; app_process /system/bin org.cf.driver.Driver <class> <method> [<parameter type>:<parameter value json>]");
@@ -131,13 +171,25 @@ public class Driver {
                     output = "Error parsing " + target;
                     status = "failure";
                 } else {
-                    try {
-                        output = invokeMethod(target.getMethod(), target.getArguments());
-                        status = "success";
-                    //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
-                    } catch (Exception e) {
-                        output = "Error executing " + target;
-                        status = "failure";
+                    if (target.getInstanceNeeded()){
+                        try {
+                            output = invokeMethodWithInstance(target.getClassName(),target.getMethod(), target.getArguments());
+                            status = "success";
+                        //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
+                        } catch (Exception e) {
+                            output = "Error executing " + target;
+                            status = "failure";
+                        }
+                    }
+                    else{
+                        try {
+                            output = invokeMethod(target.getMethod(), target.getArguments());
+                            status = "success";
+                        //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
+                        } catch (Exception e) {
+                            output = "Error executing " + target;
+                            status = "failure";
+                        }
                     }
                 }
                 idToOutput.put(target.getId(), new String[] { status, output });

@@ -111,7 +111,22 @@ class Driver
     target = {
       className: method.class.tr('/', '.'),
       methodName: method.name,
-      arguments: build_arguments(method.parameters, args)
+      arguments: build_arguments(method.parameters, args),
+      instanceNeeded: "nope"
+    }
+    # Identifiers are used to map individual inputs to outputs
+    target[:id] = Digest::SHA256.hexdigest(target.to_json)
+
+    target
+  end
+
+  def make_instance_target(class_name, signature, *args)
+    method = SmaliMethod.new(class_name, signature)
+    target = {
+      className: method.class.tr('/', '.'),
+      methodName: method.name,
+      arguments: build_arguments(method.parameters, args),
+      instanceNeeded: "yep"
     }
     # Identifiers are used to map individual inputs to outputs
     target[:id] = Digest::SHA256.hexdigest(target.to_json)

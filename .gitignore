@@ -7,3 +7,5 @@ sandbox/
 *.json
 Gemfile.lock
 coverage/
+vendor/
+.bundle
