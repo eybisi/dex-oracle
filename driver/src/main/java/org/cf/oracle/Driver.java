@@ -102,12 +102,10 @@ public class Driver {
     IllegalArgumentException, InvocationTargetException, InstantiationException , ClassNotFoundException{
         method.setAccessible(true);
         Class<?> klazz = Class.forName(klass);
-        Looper.prepare();
         Object o = klazz.newInstance();
         debug_log("Created instance");
         Object returnObject = method.invoke(o,arguments);
         Class<?> returnClass = method.getReturnType();
-        Looper.loop();
         if (returnClass.getName().equals("Ljava.lang.Void;")) {
             // I hear an ancient voice, whispering from the Void, and it chills my lightless heart...
             return null;
