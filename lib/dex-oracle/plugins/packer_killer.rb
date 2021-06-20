@@ -31,6 +31,7 @@ class PackerKiller < Plugin
     @smali_files = smali_files
     @methods = methods
     @optimizations = Hash.new(0)
+    @is_set = false
   end
 
   def process
@@ -39,9 +40,9 @@ class PackerKiller < Plugin
     @smali_files.each do |smali|
       @is_activity = false
       # logger.info("smali loop #{smali.class} #{smali.super}")
-      @current_class = smali.class
+      @current_smali = smali
       if smali.super == "Landroid/app/Activity;"
-        @activity_list.append(smali.class)
+        @activity_list.append(smali.class.to_s.split(";").first)
         @is_activity = true
       end  
       smali.methods.each do |method| 
@@ -64,22 +65,32 @@ class PackerKiller < Plugin
     target_to_contexts = {}
     matches = method.body.scan(KILLER_DECRYPT)
     matches += method.body.scan(KILLER_DECRYPT_2)
-    @optimizations[:string_decrypts] += matches.size if matches
     matches.each do |original, input_reg, encrypted, call_type,class_name, method_signature,output_reg|
-      if class_name != "android/content/Intent" and class_name != "org/json/JSONObject"
+      if class_name != "android/content/Intent" and class_name != "org/json/JSONObject" and class_name != 'android/text/format/Time' and class_name != "java/lang/String"
         if @is_activity or ( 
-          @activity_list.include? @current_class.to_s.split("$").first+";" and
-          @current_class.to_s.split("$").length() > 1
-          )
+          @activity_list.include? @current_smali.class.to_s.split("$").first and
+          @current_smali.class.to_s.split("$").length() > 1
+          ) and @is_set
+          # logger.info("Decryptor class" + @current_smali.class + @decryptor_class + @decryptor_method)
           target = @driver.make_instance_target(
           @decryptor_class, @decryptor_method, encrypted
         )
+        @optimizations[:string_decrypts] +=1
         else
-          @decryptor_class = class_name
-          @decryptor_method = method_signature 
-          target = @driver.make_instance_target(
-          class_name, method_signature, encrypted
-          )
+          # If its not public class, we cant access it.
+          # TODO Need to check against class that will be initialized by driver
+          # It doesn't need to be same as method's class.
+          if @current_smali.content.include? ".class public"       
+            @decryptor_class = class_name
+            @decryptor_method = method_signature
+            @is_set = true
+            target = @driver.make_instance_target(
+            class_name, method_signature, encrypted
+            )
+            @optimizations[:string_decrypts] += 1
+          else
+            next
+          end
         end
         target_to_contexts[target] = [] unless target_to_contexts.key?(target)
         target_to_contexts[target] << [original, output_reg]

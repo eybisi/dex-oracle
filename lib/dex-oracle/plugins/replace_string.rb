@@ -86,15 +86,6 @@ class ReplaceString < Plugin
   def replace_strings(method)
     target_to_contexts = {}
     matches = method.body.scan(REPLACER)
-    @optimizations[:string_replace] += matches.size if matches
-    matches.each do |original,_,input_string,replace,with,output_reg|
-        target = @driver.make_instance_target(
-            original, input_string, output_reg
-      )
-      target_to_contexts[target] = [] unless target_to_contexts.key?(target)
-      target_to_contexts[target] << [original, dumb_replace(input_string,replace,with), output_reg]
-    end
-
     matches = method.body.scan(REPLACER2)
     @optimizations[:string_replace] += matches.size if matches
     matches.each do |original,_,input_string,replace,with,output_reg|
@@ -104,7 +95,6 @@ class ReplaceString < Plugin
       target_to_contexts[target] = [] unless target_to_contexts.key?(target)
       target_to_contexts[target] << [original, dumb_replace(input_string,replace,with), output_reg]
     end
-
     target_to_contexts
   end
 
