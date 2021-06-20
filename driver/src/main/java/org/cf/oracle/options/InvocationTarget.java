@@ -28,12 +28,14 @@ public class InvocationTarget {
         StringBuilder sb = new StringBuilder("InvocationTarget{")
                 .append("class=")
                 .append(className).append("; method=")
-                .append(methodName).append("; args=");
+                .append(methodName)
+                .append(";instance:").append(instanceNeeded)
+                .append("; args=");
 
         for (String argumentString : argumentStrings) {
             sb.append('\'').append(argumentString).append("',");
         }
-        sb.append(";instance:").append(instanceNeeded);
+        
         if (argumentStrings.length > 0) {
             sb.setLength(sb.length() - 1);
         }

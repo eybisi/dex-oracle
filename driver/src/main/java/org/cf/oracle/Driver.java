@@ -31,7 +31,7 @@ public class Driver {
     private static final String DEBUG_LOG = "od-debug.txt";
     private static final String OUTPUT_FILE = "od-output.json";
     private static Gson GSON = buildGson();
-
+    
     private static Gson buildGson() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         JsonSerializer<Class> serializer = new JsonSerializer<Class>() {
@@ -48,16 +48,16 @@ public class Driver {
         return gsonBuilder.create();
     }
     private static void debug_log(String msg) {
-        PrintWriter writer;
-        try {
-            writer = new PrintWriter(DEBUG_LOG, "UTF-8");
-        } catch (Exception e) {
-            return;
+
+        try (FileWriter f = new FileWriter(DEBUG_LOG, true);
+                BufferedWriter b = new BufferedWriter(f);
+                PrintWriter p = new PrintWriter(b);) {
+
+            p.println(msg);
+
+        } catch (IOException i) {
+            i.printStackTrace();
         }
-        writer.println(msg);
-        StringWriter sw = new StringWriter();
-        writer.println(sw.toString());
-        writer.close();
     }
     private static void die(String msg, Exception exception) {
         PrintWriter writer;
@@ -103,8 +103,17 @@ public class Driver {
         method.setAccessible(true);
         Class<?> klazz = Class.forName(klass);
         Object o = klazz.newInstance();
-        debug_log("Created instance");
-        Object returnObject = method.invoke(o,arguments);
+        Object returnObject = null;
+        try{
+            returnObject = method.invoke(o,arguments);
+        }
+        catch(Throwable ex){
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            debug_log(sw.toString());
+        }
+        
         Class<?> returnClass = method.getReturnType();
         if (returnClass.getName().equals("Ljava.lang.Void;")) {
             // I hear an ancient voice, whispering from the Void, and it chills my lightless heart...
@@ -112,7 +121,6 @@ public class Driver {
         }
         String output = "";
         try {
-            
             output = GSON.toJson(returnClass.cast(returnObject));
         } catch (Exception ex) {
             output = GSON.toJson(returnObject);
@@ -175,7 +183,7 @@ public class Driver {
                             status = "success";
                         //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
                         } catch (Exception e) {
-                            output = "Error executing " + target;
+                            output = "Error executing " + target + "\nReason: " e.toString();;
                             status = "failure";
                         }
                     }
@@ -185,7 +193,7 @@ public class Driver {
                             status = "success";
                         //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
                         } catch (Exception e) {
-                            output = "Error executing " + target;
+                            output = "Error executing " + target + "\nReason: " + e.toString();
                             status = "failure";
                         }
                     }
