@@ -59,7 +59,6 @@ class PackerKiller < Plugin
     made_changes
   end
 
-  private
 
   def decrypt_strings(method)
     target_to_contexts = {}
@@ -70,7 +69,7 @@ class PackerKiller < Plugin
         if @is_activity or ( 
           @activity_list.include? @current_smali.class.to_s.split("$").first and
           @current_smali.class.to_s.split("$").length() > 1
-          ) and @is_set
+          ) or !@current_smali.content.include? "constructor <init>()V" or @current_smali.content.include? ".class final" and @is_set
           # logger.info("Decryptor class" + @current_smali.class + ";"+@decryptor_class+";"+ @decryptor_method)
           target = @driver.make_instance_target(
           @decryptor_class, @decryptor_method, encrypted
@@ -80,7 +79,7 @@ class PackerKiller < Plugin
           # If its not public class, we cant access it.
           # TODO Need to check against class that will be initialized by driver
           # It doesn't need to be same as method's class.
-          # if @current_smali.content.include? ".class public"       
+          #       
           @decryptor_class = class_name
           @decryptor_method = method_signature
           @is_set = true
