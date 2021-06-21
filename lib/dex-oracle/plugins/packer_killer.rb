@@ -71,7 +71,7 @@ class PackerKiller < Plugin
           @activity_list.include? @current_smali.class.to_s.split("$").first and
           @current_smali.class.to_s.split("$").length() > 1
           ) and @is_set
-          # logger.info("Decryptor class" + @current_smali.class + @decryptor_class + @decryptor_method)
+          # logger.info("Decryptor class" + @current_smali.class + ";"+@decryptor_class+";"+ @decryptor_method)
           target = @driver.make_instance_target(
           @decryptor_class, @decryptor_method, encrypted
         )
@@ -80,17 +80,18 @@ class PackerKiller < Plugin
           # If its not public class, we cant access it.
           # TODO Need to check against class that will be initialized by driver
           # It doesn't need to be same as method's class.
-          if @current_smali.content.include? ".class public"       
-            @decryptor_class = class_name
-            @decryptor_method = method_signature
-            @is_set = true
-            target = @driver.make_instance_target(
-            class_name, method_signature, encrypted
-            )
-            @optimizations[:string_decrypts] += 1
-          else
-            next
-          end
+          # if @current_smali.content.include? ".class public"       
+          @decryptor_class = class_name
+          @decryptor_method = method_signature
+          @is_set = true
+          # logger.info("Decryptor2 class" + ";"+ class_name + ";"+method_signature)
+          target = @driver.make_instance_target(
+          class_name, method_signature, encrypted
+          )
+          @optimizations[:string_decrypts] += 1
+          # else
+            # next
+          # end
         end
         target_to_contexts[target] = [] unless target_to_contexts.key?(target)
         target_to_contexts[target] << [original, output_reg]
