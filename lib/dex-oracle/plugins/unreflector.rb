@@ -78,9 +78,10 @@ class Unreflector < Plugin
       if class_name == "[B"
         next
       else
-        logger.info(original + ";"+ smali_class + ";" + class_name)
+        
         target = { id: Digest::SHA256.hexdigest(original) }
         smali_class = "L#{class_name.tr('.', '/')};"
+        logger.info(original + ";"+ smali_class + ";" + class_name)
         target_id_to_output[target[:id]] = ['success', smali_class]
         target_to_contexts[target] = [] unless target_to_contexts.key?(target)
         target_to_contexts[target] << [original, out_reg]

@@ -37,7 +37,7 @@ class Driver
     @cache = {}
   end
 
-  def install(dex)
+  def install(dex_array)
     has_java = Utility.which('java')
     raise 'Unable to find Java on the path.' unless has_java
 
@@ -46,7 +46,7 @@ class Driver
       # Congratulations. You're now one of the 5 people who've used this tool explicitly.
       raise "#{Resources.dx} does not exist and is required for DexMerger" unless File.exist?(Resources.dx)
       raise "#{Resources.driver_dex} does not exist" unless File.exist?(Resources.driver_dex)
-      logger.debug("Merging input DEX (#{dex.path}) and driver DEX (#{Resources.driver_dex}) ...")
+      logger.debug("Merging input DEX  and driver DEX (#{Resources.driver_dex}) ...")
 
       # Zip merged dex and push to device
       logger.debug('Pushing merged driver to device ...')
@@ -57,7 +57,10 @@ class Driver
       tz.close
 
       # starting from android 5.0 all dex files named classesN.dex are loaded automatically.
-      Utility.create_zip(tempzip_path, 'classes.dex' => Resources.driver_dex, 'classes2.dex' => dex)
+      all_dexes = *dex_array
+      driver_dex_name = "classes" + (dex_array.length+1).to_s + ".dex"
+      all_dexes.append(driver_dex_name => Resources.driver_dex)
+      zip = Utility.create_zip(tempzip_path,all_dexes)
       adb("push #{tz.path} #{@driver_dir}/od.zip")
     rescue => e
       puts "Error installing driver: #{e}\n#{e.backtrace.join("\n\t")}"

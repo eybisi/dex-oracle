@@ -4,7 +4,7 @@ require_relative 'utility'
 require_relative 'logging'
 
 class SmaliInput
-  attr_reader :dir, :out_apk, :out_dex, :temp_dir, :temp_dex
+  attr_reader :dir, :out_apk, :out_dex_array, :temp_dir, :temp_dex
 
   include Logging
 
@@ -19,7 +19,7 @@ class SmaliInput
     SmaliInput.update_apk(dir, @out_apk) if @out_apk
     SmaliInput.compile(dir, @out_dex) if @out_dex && !@out_apk
     FileUtils.rm_rf(@dir) if @temp_dir
-    FileUtils.rm_rf(@out_dex) if @temp_dex
+    @out_dex_array.each { |n, f| n.each { |name, file| FileUtils.rm_rf(file) if @temp_dex } }    
   end
 
   def self.compile(dir, out_dex = nil)
@@ -37,8 +37,9 @@ class SmaliInput
     Utility.update_zip(out_apk, 'classes.dex', out_dex)
   end
 
-  def self.extract_dex(apk, out_dex)
-    Utility.extract_file(apk, 'classes.dex', out_dex)
+  def self.extract_dexes(apk, out_dex_array)
+    # Extract all dex, dont do just one dudeeee.
+    Utility.extract_dexes(apk, out_dex_array)
   end
 
   def self.exec(cmd)
@@ -70,9 +71,9 @@ class SmaliInput
       @temp_dex = true
       @temp_dir = true
       @out_apk = "#{File.basename(input, '.*')}_oracle#{File.extname(input)}"
-      @out_dex = Tempfile.new(%w(oracle .dex))
       FileUtils.cp(input, @out_apk)
-      SmaliInput.extract_dex(@out_apk, @out_dex)
+      @out_dex_array = []
+      SmaliInput.extract_dexes(@out_apk,@out_dex_array)
       baksmali(input)
     when DEX_MAGIC
       @temp_dex = false
