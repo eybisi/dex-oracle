@@ -1,7 +1,7 @@
 require_relative '../logging'
 require_relative '../utility'
 
-class PackerKiller < Plugin
+class CommonPackerString < Plugin
   attr_reader :optimizations
 
   include Logging
@@ -74,7 +74,7 @@ class PackerKiller < Plugin
           target = @driver.make_instance_target(
           @decryptor_class, @decryptor_method, encrypted
         )
-        @optimizations[:string_decrypts] +=1
+        @optimizations[:common_packer_string] +=1
         else
           # If its not public class, we cant access it.
           # TODO Need to check against class that will be initialized by driver
@@ -87,7 +87,7 @@ class PackerKiller < Plugin
           target = @driver.make_instance_target(
           class_name, method_signature, encrypted
           )
-          @optimizations[:string_decrypts] += 1
+          @optimizations[:common_packer_string] += 1
           # else
             # next
           # end
