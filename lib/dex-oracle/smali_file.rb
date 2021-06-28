@@ -10,7 +10,7 @@ class SmaliFile
 
   ACCESSOR = /(?:abstract|annotation|constructor|enum|final|interface|native|private|protected|public|static|strictfp|synchronized|synthetic|transient|volatile)/
   TYPE = /(?:[IJFDZBCV]|L[^;]+;)/
-  CLASS = /^\.class (?:#{ACCESSOR} )+(L[^;]+;)/
+  CLASS = /^\.class (?:#{ACCESSOR} )*(L[^;]+;)/
   SUPER = /^\.super (L[^;]+;)/
   INTERFACE = /^\.implements (L[^;]+;)/
   FIELD = /^\.field (?:#{ACCESSOR} )+([^\s]+)$/
