@@ -81,6 +81,8 @@ class SmaliInput
       @out_dex = "#{File.basename(input, '.*')}_oracle#{File.extname(input)}"
       FileUtils.cp(input, @out_dex)
       @out_dex = File.new(@out_dex)
+      @out_dex_array = []
+      @out_dex_array.append("classes2.dex" => @out_dex)
       baksmali(input)
     else
       raise "Unrecognized file type for: #{input}, magic=#{magic.inspect}"
