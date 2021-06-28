@@ -19,7 +19,7 @@ public class TargetParser {
     private static void parseTargetExceptionally(Gson gson, InvocationTarget target) {
         try {
             parseTarget(gson, target);
-        } catch (ClassNotFoundException | NoSuchMethodException | ExceptionInInitializerError e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | LinkageError e ) {
             target.setParseException(e);
         }
     }
@@ -34,6 +34,7 @@ public class TargetParser {
             if (parts.length == 1) {
                 methodArguments[i] = null;
             } else {
+                // System.out.println("Parsing: " + parts[1]);
                 String jsonValue = parts[1];
                 if (parameterTypes[i] == String.class) {
                     try {
@@ -45,7 +46,7 @@ public class TargetParser {
                         methodArguments[i] = jsonValue;
                     }
                 } else {
-                    // System.out.println("Parsing: " + itemJson + " as " + paramTypes[i]);
+                    // System.out.println("Parsing: " + jsonValue + " as " + parameterTypes[i]);
                     methodArguments[i] = gson.fromJson(jsonValue, parameterTypes[i]);
                 }
             }
