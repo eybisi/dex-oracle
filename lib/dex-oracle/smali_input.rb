@@ -82,7 +82,7 @@ class SmaliInput
       FileUtils.cp(input, @out_dex)
       @out_dex = File.new(@out_dex)
       @out_dex_array = []
-      @out_dex_array.append("classes2.dex" => @out_dex)
+      @out_dex_array.append("classes.dex" => @out_dex)
       baksmali(input)
     else
       raise "Unrecognized file type for: #{input}, magic=#{magic.inspect}"
