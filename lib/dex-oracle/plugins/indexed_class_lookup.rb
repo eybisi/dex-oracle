@@ -53,7 +53,7 @@ class IndexedClassLookup < Plugin
     made_changes |= Plugin.apply_batch(@driver, method_to_target_to_contexts, MODIFIER, FILTER)
 
     @methods.each do |method|
-      logger.info("decrypt_classes2 #{method.descriptor}")
+      # logger.info("decrypt_classes2 #{method.descriptor}")
       made_changes |= decrypt_classes2(method)
     end
 

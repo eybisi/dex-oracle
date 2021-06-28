@@ -14,6 +14,22 @@ class StringDecryptor < Plugin
     '\s+' +
     MOVE_RESULT_OBJECT + ')'
   )
+  STRING_DECRYPT2 = Regexp.new(
+    '^[ \t]*(' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'invoke-static\/range \{[vp]\d+, [vp]\d+, [vp]\d+\}, L([^;]+);->([^\(]+\(III\))Ljava/lang/String;\s+' \
+    'move-result-object ([vp]\d+))'
+  )
+  STRING_DECRYPT3 = Regexp.new(
+    '^[ \t]*(' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'const [vp]\d+, (-?0x[a-f\d]+)' + '\s+' +
+    'invoke-static\/range \{[vp]\d+ \.\. [vp]\d+\}, L([^;]+);->([^\(]+\(III\))Ljava/lang/String;\s+' \
+    'move-result-object ([vp]\d+))'
+  )
 
   MODIFIER = -> (_, output, out_reg) { "const-string #{out_reg}, \"#{output.split('').collect { |e| e.inspect[1..-2] }.join}\"" }
 
@@ -49,6 +65,28 @@ class StringDecryptor < Plugin
     matches.each do |original, _, encrypted, class_name, method_signature, out_reg|
       target = @driver.make_target(
         class_name, method_signature, encrypted
+      )
+      target_to_contexts[target] = [] unless target_to_contexts.key?(target)
+      target_to_contexts[target] << [original, out_reg]
+    end
+
+    matches = method.body.scan(STRING_DECRYPT2)
+    @optimizations[:string_decrypts] += matches.size if matches
+    matches.each do |original, number1, number2, number3, class_name, method_signature, out_reg|
+      # logger.info("New" + " " + number1 + " " + number2 + " " + number3 + " " + number1+ " " + class_name + " " + method_signature + " " + out_reg)
+      target = @driver.make_target(
+        class_name, method_signature, number1.to_i(16),number2.to_i(16),number3.to_i(16)
+      )
+      target_to_contexts[target] = [] unless target_to_contexts.key?(target)
+      target_to_contexts[target] << [original, out_reg]
+    end
+
+    matches = method.body.scan(STRING_DECRYPT3)
+    @optimizations[:string_decrypts] += matches.size if matches
+    matches.each do |original, number1, number2, number3, class_name, method_signature, out_reg|
+      # logger.info("New2" + " " + number1 + " " + number2 + " " + number3 + " " + number1+ " " + class_name + " " + method_signature + " " + out_reg)
+      target = @driver.make_target(
+        class_name, method_signature, number1.to_i(16),number2.to_i(16),number3.to_i(16)
       )
       target_to_contexts[target] = [] unless target_to_contexts.key?(target)
       target_to_contexts[target] << [original, out_reg]
