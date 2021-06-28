@@ -30,6 +30,20 @@ class StringDecryptor < Plugin
     'invoke-static\/range \{[vp]\d+ \.\. [vp]\d+\}, L([^;]+);->([^\(]+\(III\))Ljava/lang/String;\s+' \
     'move-result-object ([vp]\d+))'
   )
+  #34c5c4d996b33eb842d38507bf2f1a0728500c7b705407826d8196d3bc6e571b Long value to String with Static function
+  STRING_DECRYPT4 = Regexp.new(
+    '^[ \t]*(' +
+    'const-wide [vp]\d+, (-?0x[a-f\d]+L)' + '\s+' +
+    'invoke-static\/range \{[vp]\d+ \.\. [vp]\d+\}, L([^;]+);->([^\(]+\(J\))Ljava/lang/String;\s+' \
+    'move-result-object ([vp]\d+))'
+  )
+  #34c5c4d996b33eb842d38507bf2f1a0728500c7b705407826d8196d3bc6e571b Long value to String with Static function
+  STRING_DECRYPT5 = Regexp.new(
+    '^[ \t]*(' +
+    'const-wide [vp]\d+, (-?0x[a-f\d]+L)' + '\s+' +
+    'invoke-static \{[vp]\d+, [vp]\d+\}, L([^;]+);->([^\(]+\(J\))Ljava/lang/String;\s+' \
+    'move-result-object ([vp]\d+))'
+  )
 
   MODIFIER = -> (_, output, out_reg) { "const-string #{out_reg}, \"#{output.split('').collect { |e| e.inspect[1..-2] }.join}\"" }
 
@@ -92,6 +106,27 @@ class StringDecryptor < Plugin
       target_to_contexts[target] << [original, out_reg]
     end
 
+    matches = method.body.scan(STRING_DECRYPT4)
+    @optimizations[:string_decrypts] += matches.size if matches
+    matches.each do |original, long, class_name, method_signature, out_reg|
+      logger.info("New3" + " " + long + " " + class_name + " " + method_signature + " " + out_reg)
+      target = @driver.make_target(
+        class_name, method_signature, long.to_i(16)
+      )
+      target_to_contexts[target] = [] unless target_to_contexts.key?(target)
+      target_to_contexts[target] << [original, out_reg]
+    end
+
+    matches = method.body.scan(STRING_DECRYPT5)
+    @optimizations[:string_decrypts] += matches.size if matches
+    matches.each do |original, long, class_name, method_signature, out_reg|
+      logger.info("New3" + " " + long + " " + class_name + " " + method_signature + " " + out_reg)
+      target = @driver.make_target(
+        class_name, method_signature, long.to_i(16)
+      )
+      target_to_contexts[target] = [] unless target_to_contexts.key?(target)
+      target_to_contexts[target] << [original, out_reg]
+    end
     target_to_contexts
   end
 end
