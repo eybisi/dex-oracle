@@ -90,7 +90,7 @@ input = Pathname.new(ARGV[0]).realpath.to_s
 smali_input = SmaliInput.new(input)
 
 driver = Driver.new(options[:device_id], options[:timeout])
-driver.install(smali_input.out_dex)
+driver.install(smali_input.out_dex_array)
 
 oracle = Oracle.new(
   smali_input.dir, driver, options[:include_types], options[:exclude_types], options[:disable_plugins]
