@@ -137,6 +137,26 @@ class Driver
     target
   end
 
+  def make_instance_field_target(class_name, field_name, signature, *args)
+    # Here is how it works:
+    # class A hold field B which is static
+    # field B is a class and have function C
+    # Since class A's field B hold class of B
+    # We just need to give class A to Driver. Then we will resolve it
+    method = SmaliMethod.new(class_name, signature)
+    target = {
+      className: method.class.tr('/', '.'),
+      methodName: method.name,
+      fieldName: field_name,
+      arguments: build_arguments(method.parameters, args),
+      instanceNeeded: "yep"
+    }
+    # Identifiers are used to map individual inputs to outputs
+    target[:id] = Digest::SHA256.hexdigest(target.to_json)
+
+    target
+  end
+
   private
 
   def push_batch_targets(batch)
@@ -168,7 +188,7 @@ class Driver
     output_file = Tempfile.new(['oracle-output', '.json'])
     logger.debug('Pulling batch results from device ...')
     adb("pull #{@driver_dir}/od-output.json #{output_file.path}")
-    adb("shell rm #{@driver_dir}/od-output.json")
+    #adb("shell rm #{@driver_dir}/od-output.json")
     outputs = JSON.parse(File.read(output_file.path))
     outputs.each { |_, (_, v2)| v2.gsub!(/(?:^"|"$)/, '') if v2.start_with?('"') }
     logger.debug("Pulled #{outputs.size} outputs.")
