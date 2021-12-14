@@ -23,6 +23,8 @@ class Unused < Plugin
   def process
     #Put packer's Application class or All activities here.
     #2685bb2718ca6d127939f4d1e6e4d21f8bceb82613f4e475c99b8dc3b3325f82
+    #https://gist.github.com/eybisi/09a74e6edf71f5cb37764a1404695461
+
     class_list = Set["owner/walk/disorder/HUyUnSdOeEcYrAwLxPwMsFu"]
     processed_class = Set[]
     # Walk all smali files.
