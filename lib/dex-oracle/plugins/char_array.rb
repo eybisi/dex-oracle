@@ -21,7 +21,15 @@ class CharArrayString < Plugin
     'invoke-static \{([vp]\d+)\}, Ljava\/lang\/String;->valueOf\(\[C\)Ljava\/lang\/String;\s+'\
     'move-result-object ([vp]\d+))'
   )
-  
+  CHAR_ARRAY_REGEX2 = Regexp.new(
+    '^[ \t]*(' +
+    # 'const\/16 [vp]\d+, 0x\w+\s+' \
+    'new-array ([vp]\d+), ([vp]\d+), \[C\s+' \
+    'fill-array-data ([vp]\d+), :(array\_\w+)\s+'\
+    'sget-object ([vp]\d+), L([^;]+);->([^\(]+):L([^;]+);' + '\s+' \
+    'invoke-static \{[vp]\d+, [vp]\d+\}, Ljava\/lang\/String;->valueOf\(\[BLjava\/lang\/String;\)\[B;\s+'\
+    'move-result-object ([vp]\d+))'
+  )
   FIND_ARRAY_REGEX = Regexp.new(
     '\s+\.array-data \d+\s+'\
     '((0x\w\ws\s+)+)'
