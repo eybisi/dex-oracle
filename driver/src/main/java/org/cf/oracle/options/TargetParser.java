@@ -3,6 +3,10 @@ package org.cf.oracle.options;
 import com.google.gson.*;
 import org.cf.oracle.FileUtils;
 
+import java.lang.UnsatisfiedLinkError;
+import java.lang.ClassNotFoundException;
+import java.lang.NoClassDefFoundError;
+import java.lang.ExceptionInInitializerError;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -19,12 +23,12 @@ public class TargetParser {
     private static void parseTargetExceptionally(Gson gson, InvocationTarget target) {
         try {
             parseTarget(gson, target);
-        } catch (ClassNotFoundException | NoSuchMethodException | LinkageError e ) {
+        } catch (ClassNotFoundException | NoSuchMethodException | LinkageError e) {
             target.setParseException(e);
         }
     }
 
-    private static void parseTarget(Gson gson, InvocationTarget target) throws ClassNotFoundException, NoSuchMethodException {
+    private static void parseTarget(Gson gson, InvocationTarget target) throws ClassNotFoundException , NoSuchMethodException, ExceptionInInitializerError {
         String[] args = target.getArgumentStrings();
         Class<?>[] parameterTypes = new Class[args.length];
         Object[] methodArguments = new Object[parameterTypes.length];
@@ -52,8 +56,9 @@ public class TargetParser {
             }
         }
         target.setArguments(methodArguments);
-
-        Class<?> methodClass = Class.forName(target.getClassName());
+        Class<?> methodClass = null;
+        ClassLoader loader = TargetParser.class.getClassLoader();
+        methodClass = Class.forName(target.getClassName(),false,loader);
         Method method = methodClass.getDeclaredMethod(target.getMethodName(), parameterTypes);
         target.setMethod(method);
     }

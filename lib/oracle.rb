@@ -60,7 +60,7 @@ class Oracle
     # the only Dir method that let's me set UTF-8 encoding. I must be missing something.
     # OH WELL. Do it the hard way.
     opts = { encoding: 'UTF-8' }
-    Dir.entries(dir, opts).collect do |entry|
+    Dir.entries(dir).collect do |entry|
       next if entry == '.' or entry == '..'
       full_path = "#{dir}/#{entry}"
       if File.directory?(full_path)

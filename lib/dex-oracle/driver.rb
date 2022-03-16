@@ -99,7 +99,6 @@ class Driver
       drive("#{@cmd_stub} @#{@driver_dir}/od-targets.json", true)
     rescue => e
       raise e if retries > 3 || !e.message.include?('Segmentation fault')
-
       # Maybe we just need to retry
       logger.debug("Driver execution segfaulted. Taking a quick nap and retrying, Zzzzz ##{retries} / 3 ...")
       sleep 5
@@ -188,7 +187,7 @@ class Driver
     output_file = Tempfile.new(['oracle-output', '.json'])
     logger.debug('Pulling batch results from device ...')
     adb("pull #{@driver_dir}/od-output.json #{output_file.path}")
-    #adb("shell rm #{@driver_dir}/od-output.json")
+    adb("shell rm #{@driver_dir}/od-output.json")
     outputs = JSON.parse(File.read(output_file.path))
     outputs.each { |_, (_, v2)| v2.gsub!(/(?:^"|"$)/, '') if v2.start_with?('"') }
     logger.debug("Pulled #{outputs.size} outputs.")
@@ -242,7 +241,6 @@ class Driver
 
   def drive(cmd, batch = false)
     return @cache[cmd] if @cache.key?(cmd)
-
     full_cmd = "shell \"#{cmd}\"; echo $?"
     full_output = adb(full_cmd)
     output = validate_output(full_cmd, full_output)

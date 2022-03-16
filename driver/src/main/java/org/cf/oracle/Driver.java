@@ -7,6 +7,11 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.Class;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.UnsatisfiedLinkError;
+import java.lang.VerifyError;
+import java.lang.ExceptionInInitializerError;
+import java.lang.RuntimeException;
+import java.lang.NoClassDefFoundError;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -80,12 +85,11 @@ public class Driver {
         System.exit(-1);
     }
 
-    private static String invokeMethod(Method method, Object[] arguments) throws IllegalAccessException,
-                    IllegalArgumentException, InvocationTargetException {
+    private static String invokeMethod(Method method, Object[] arguments) throws IllegalAccessException,IllegalArgumentException, InvocationTargetException,ClassNotFoundException,ExceptionInInitializerError, UnsatisfiedLinkError,NoClassDefFoundError {
         method.setAccessible(true);
-        Object returnObject = method.invoke(null, arguments);
-
-        Class<?> returnClass = method.getReturnType();
+        Object returnObject = null;
+        returnObject = method.invoke(null, arguments);
+            Class<?> returnClass = method.getReturnType();
         if (returnClass.getName().equals("Ljava.lang.Void;")) {
             // I hear an ancient voice, whispering from the Void, and it chills my lightless heart...
             return null;
@@ -101,10 +105,11 @@ public class Driver {
         return output;
     }
 
-    private static String invokeMethodWithInstance(String klass,Method method, Object[] arguments) throws IllegalAccessException,
+    private static String invokeMethodWithInstance(String klass,Method method, Object[] arguments) throws IllegalAccessException,UnsatisfiedLinkError,
     IllegalArgumentException, InvocationTargetException, InstantiationException , ClassNotFoundException{
         method.setAccessible(true);
-        Class<?> klazz = Class.forName(klass);
+        Class<?> klazz = null;
+        klazz = Class.forName(klass);
         Object o = klazz.newInstance();
         Object returnObject = null;
         try{
@@ -194,14 +199,15 @@ public class Driver {
                         try {
                             output = invokeMethod(target.getMethod(), target.getArguments());
                             status = "success";
-                        //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
-                        } catch (Exception e) {
+                        } catch (ClassNotFoundException | IllegalAccessException | LinkageError | InvocationTargetException e) {
+                            
                             output = "Error executing " + target + "\nReason: " + e.toString();
                             status = "failure";
                         }
                     }
                 }
                 idToOutput.put(target.getId(), new String[] { status, output });
+                
             }
 
             String json = GSON.toJson(idToOutput);
@@ -212,6 +218,7 @@ public class Driver {
             }
 
             System.out.println(OUTPUT_HEADER + "success");
+            System.exit(0);
         }
     }
 }

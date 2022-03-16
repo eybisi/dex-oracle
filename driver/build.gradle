@@ -1,6 +1,5 @@
 project.version = '1.1.0'
 version = '1.1.0'
-def jarVersion = version
 
 apply plugin: 'application'
 mainClassName = 'org.cf.driver.OracleDriver'
@@ -10,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.code.gson:gson:2.8.2'
     // testCompile 'junit:junit:4.12-beta-3'
 }
 
@@ -27,14 +26,10 @@ apply plugin: 'idea'
 group = 'org.cf'
 sourceCompatibility = 1.7
 
-jar {
-    version = jarVersion
-}
-
 // Build a separate jar that contains all dependencies
 task fatJar(type: Jar) {
     from sourceSets.main.output
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
         attributes('Main-Class': mainClassName)
@@ -42,11 +37,8 @@ task fatJar(type: Jar) {
 
     doLast {
         if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
-            ant.symlink(link: file("${destinationDir}/driver.jar"), resource: archivePath, overwrite: true)
+            ant.symlink(link: file("/home/slayer/Github/dex-oracle/driver/build/libs/driver.jar"), resource: archivePath, overwrite: true)
+
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.7'
 }
