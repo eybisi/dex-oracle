@@ -84,8 +84,13 @@ public class Driver {
         // app_process, dalvikvm, and dvz don't propagate exit codes, so this doesn't matter
         System.exit(-1);
     }
-
-    private static String invokeMethod(Method method, Object[] arguments) throws IllegalAccessException,IllegalArgumentException, InvocationTargetException,ClassNotFoundException,ExceptionInInitializerError, UnsatisfiedLinkError,NoClassDefFoundError {
+    public static String byteArrayToHex(byte[] a) {
+   StringBuilder sb = new StringBuilder(a.length * 2);
+   for(byte b: a)
+      sb.append(String.format("%02x ", b));
+   return sb.toString();
+}
+    private static String invokeMethod(Method method, Object[] arguments) throws IllegalAccessException,IllegalArgumentException, ClassNotFoundException,ExceptionInInitializerError, UnsatisfiedLinkError, InvocationTargetException,NoClassDefFoundError {
         method.setAccessible(true);
         Object returnObject = null;
         returnObject = method.invoke(null, arguments);
@@ -105,8 +110,7 @@ public class Driver {
         return output;
     }
 
-    private static String invokeMethodWithInstance(String klass,Method method, Object[] arguments) throws IllegalAccessException,UnsatisfiedLinkError,
-    IllegalArgumentException, InvocationTargetException, InstantiationException , ClassNotFoundException{
+    private static String invokeMethodWithInstance(String klass,Method method, Object[] arguments) throws IllegalAccessException,UnsatisfiedLinkError,NoClassDefFoundError,IllegalArgumentException, InvocationTargetException, InstantiationException , ClassNotFoundException, IllegalArgumentException{
         method.setAccessible(true);
         Class<?> klazz = null;
         klazz = Class.forName(klass);
@@ -190,8 +194,8 @@ public class Driver {
                             output = invokeMethodWithInstance(target.getClassName(),target.getMethod(), target.getArguments());
                             status = "success";
                         //} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NullPointerException e) {
-                        } catch (Exception e) {
-                            output = "Error executing " + target + "\nReason: " + e.toString();
+                        } catch (InstantiationException|IllegalAccessException | ClassNotFoundException | IllegalArgumentException | LinkageError | InvocationTargetException | NullPointerException e) {
+                            output = "Error executing instance" + target + "\nReason: " + e.toString();
                             status = "failure";
                         }
                     }
@@ -199,8 +203,8 @@ public class Driver {
                         try {
                             output = invokeMethod(target.getMethod(), target.getArguments());
                             status = "success";
-                        } catch (ClassNotFoundException | IllegalAccessException | LinkageError | InvocationTargetException e) {
-                            
+                        } catch (ClassNotFoundException | IllegalAccessException | LinkageError| InvocationTargetException | NullPointerException e) {
+                            //#e.printStackTrace();
                             output = "Error executing " + target + "\nReason: " + e.toString();
                             status = "failure";
                         }
